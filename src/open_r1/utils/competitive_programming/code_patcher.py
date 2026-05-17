@@ -42,33 +42,33 @@ def fix_python3_imports(source_code):
         # --- End: Replacement for the faulty line ---
     ]
 
-    lines = source_code.splitlines()
-    last_import = max(
-        [
-            i
-            for i, line in enumerate(lines)
-            if line.strip().startswith("import") or (line.strip().startswith("from") and "import" in line)
-        ],
-        default=0,
-    )
-    import_section = "\n".join(lines[: last_import + 1])
-    main_source = "\n".join(lines[last_import:])
-
-    if "fractions.gcd" in source_code and "import math" not in source_code:
-        import_section += "\nimport math"
-    elif "gcd" in source_code and "from math import gcd" not in source_code:
-        import_section += "\nfrom math import gcd"
-
-    if "set_int_max_str_digits" not in source_code:
-        import_section += "\nimport sys\nsys.set_int_max_str_digits(0)"
-
-    source_code = import_section + "\n" + main_source
+    used_qualified_gcd = "fractions.gcd" in source_code
+    imported_legacy_gcd = bool(re.search(r"from\s+fractions\s+import[^\n]*\bgcd\b", source_code))
 
     # Apply each replacement
     for pattern, replacement in replacements:
         source_code = re.sub(pattern, replacement, source_code)
 
-    source_code = source_code.rstrip("\\")
+    lines = source_code.splitlines()
+    import_indexes = [
+        index
+        for index, line in enumerate(lines)
+        if line.strip().startswith("import ") or (line.strip().startswith("from ") and " import " in line)
+    ]
+    insertion_index = import_indexes[-1] + 1 if import_indexes else 0
+    runtime_setup = []
+
+    if used_qualified_gcd and not re.search(r"^\s*import\s+math\b", source_code, re.MULTILINE):
+        runtime_setup.append("import math")
+    if imported_legacy_gcd and not re.search(r"^\s*from\s+math\s+import[^\n]*\bgcd\b", source_code, re.MULTILINE):
+        runtime_setup.append("from math import gcd")
+    if "set_int_max_str_digits" not in source_code:
+        runtime_setup.extend(("import sys", "sys.set_int_max_str_digits(0)"))
+
+    if runtime_setup:
+        lines[insertion_index:insertion_index] = runtime_setup
+
+    source_code = "\n".join(lines).rstrip("\\")
 
     return source_code
 

@@ -60,3 +60,25 @@ def test_fix_python_disables_integer_string_limit_once():
     patched = fix_python3_imports("print(int(input()))")
     assert patched.count("sys.set_int_max_str_digits(0)") == 1
 
+
+def test_fix_python_does_not_duplicate_last_import():
+    patched = fix_python3_imports("import json\nprint(json.dumps({}))")
+    assert patched.count("import json") == 1
+
+
+def test_fix_python_preserves_first_line_without_imports():
+    patched = fix_python3_imports("value = 42\nprint(value)")
+    assert patched.count("value = 42") == 1
+    assert patched.endswith("value = 42\nprint(value)")
+
+
+def test_fix_python_does_not_import_gcd_for_unrelated_identifier():
+    patched = fix_python3_imports("gcd_result = 'not a function call'")
+    assert "from math import gcd" not in patched
+
+
+def test_fix_python_adds_math_for_qualified_legacy_gcd():
+    patched = fix_python3_imports("import fractions\nprint(fractions.gcd(6, 4))")
+    assert "import math" in patched
+    assert "math.gcd(6, 4)" in patched
+
