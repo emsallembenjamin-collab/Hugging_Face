@@ -78,6 +78,8 @@ class ScriptArguments(trl.ScriptArguments):
     def __post_init__(self):
         if self.dataset_name is None and self.dataset_mixture is None:
             raise ValueError("Either `dataset_name` or `dataset_mixture` must be provided")
+        if self.dataset_name is not None and self.dataset_mixture is not None:
+            raise ValueError("`dataset_name` and `dataset_mixture` are mutually exclusive")
 
         if self.dataset_mixture is not None:
             if not isinstance(self.dataset_mixture, dict) or "datasets" not in self.dataset_mixture:
@@ -90,23 +92,39 @@ class ScriptArguments(trl.ScriptArguments):
             datasets_data = self.dataset_mixture.get("datasets", [])
 
             if isinstance(datasets_data, list):
-                for dataset_config in datasets_data:
+                if not datasets_data:
+                    raise ValueError("'datasets' must contain at least one dataset configuration")
+                for index, dataset_config in enumerate(datasets_data):
+                    if not isinstance(dataset_config, dict):
+                        raise ValueError(f"Dataset configuration at index {index} must be a dictionary")
+                    dataset_id = dataset_config.get("id")
+                    if not isinstance(dataset_id, str) or not dataset_id.strip():
+                        raise ValueError(f"Dataset configuration at index {index} requires a non-empty 'id'")
+                    weight = dataset_config.get("weight", 1.0)
+                    if weight is not None and (not isinstance(weight, (int, float)) or not 0 < weight <= 1):
+                        raise ValueError(f"Dataset weight at index {index} must be greater than 0 and at most 1")
                     datasets_list.append(
                         DatasetConfig(
-                            id=dataset_config.get("id"),
+                            id=dataset_id.strip(),
                             config=dataset_config.get("config"),
                             split=dataset_config.get("split", "train"),
                             columns=dataset_config.get("columns"),
-                            weight=dataset_config.get("weight", 1.0),
+                            weight=weight,
                         )
                     )
             else:
                 raise ValueError("'datasets' must be a list of dataset configurations")
 
+            test_split_size = self.dataset_mixture.get("test_split_size", None)
+            if test_split_size is not None and (
+                not isinstance(test_split_size, (int, float)) or not 0 < test_split_size < 1
+            ):
+                raise ValueError("dataset_mixture.test_split_size must be greater than 0 and less than 1")
+
             self.dataset_mixture = DatasetMixtureConfig(
                 datasets=datasets_list,
                 seed=self.dataset_mixture.get("seed", 0),
-                test_split_size=self.dataset_mixture.get("test_split_size", None),
+                test_split_size=test_split_size,
             )
 
             # Check that column names are consistent across all dataset configs
