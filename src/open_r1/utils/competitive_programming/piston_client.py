@@ -13,6 +13,27 @@ class PistonError(Exception):
     pass
 
 
+def _positive_int_from_env(name: str, default: int) -> int:
+    raw_value = os.getenv(name, str(default))
+    try:
+        value = int(raw_value)
+    except ValueError as error:
+        raise ValueError(f"{name} must be an integer, got {raw_value!r}") from error
+    if value < 1:
+        raise ValueError(f"{name} must be greater than zero, got {value}")
+    return value
+
+
+def _parse_piston_endpoints(raw_endpoints: str) -> list[str]:
+    endpoints = sorted({endpoint.strip().rstrip("/") for endpoint in raw_endpoints.split(",") if endpoint.strip()})
+    if not endpoints:
+        raise ValueError("PISTON_ENDPOINTS must contain at least one endpoint")
+    invalid = [endpoint for endpoint in endpoints if not endpoint.startswith(("http://", "https://"))]
+    if invalid:
+        raise ValueError(f"Piston endpoints must use http:// or https://: {', '.join(invalid)}")
+    return endpoints
+
+
 @lru_cache(maxsize=1)
 def get_piston_client_from_env(session=None):
     piston_endpoints = os.getenv("PISTON_ENDPOINTS")
@@ -20,17 +41,23 @@ def get_piston_client_from_env(session=None):
         raise ValueError(
             "For IOI/CF problems Piston endpoints running our IOI package are required. Please add a list of valid Piston endpoints to a PISTON_ENDPOINTS variable in a `.env` file."
         )
-    piston_endpoints = sorted(
-        piston_endpoints.split(",") if piston_endpoints != "slurm" else get_slurm_piston_endpoints()
-    )
+    if piston_endpoints == "slurm":
+        piston_endpoints = get_slurm_piston_endpoints()
+    else:
+        piston_endpoints = _parse_piston_endpoints(piston_endpoints)
+
     gpu_nb = int(os.getenv("LOCAL_RANK", 0))  # per‑GPU index
-    world = int(os.getenv("WORLD_SIZE", 1))  # total GPUs
+    world = _positive_int_from_env("WORLD_SIZE", 1)  # total GPUs
+    if gpu_nb < 0 or gpu_nb >= world:
+        raise ValueError(f"LOCAL_RANK must be between 0 and WORLD_SIZE - 1, got {gpu_nb}")
     if world > 1:
         print(f"Using a subset of piston endpoints for GPU#{gpu_nb}")
         piston_endpoints = piston_endpoints[gpu_nb::world]
+        if not piston_endpoints:
+            raise ValueError(f"No Piston endpoint is assigned to LOCAL_RANK={gpu_nb}; configure at least {world} endpoints")
     random.shuffle(piston_endpoints)
-    max_requests_per_endpoint = os.getenv("PISTON_MAX_REQUESTS_PER_ENDPOINT", "1")
-    return PistonClient(piston_endpoints, session, max_requests_per_endpoint=int(max_requests_per_endpoint))
+    max_requests_per_endpoint = _positive_int_from_env("PISTON_MAX_REQUESTS_PER_ENDPOINT", 1)
+    return PistonClient(piston_endpoints, session, max_requests_per_endpoint=max_requests_per_endpoint)
 
 
 class PistonClient:

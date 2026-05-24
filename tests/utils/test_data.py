@@ -124,6 +124,35 @@ class TestGetDataset(unittest.TestCase):
             _ = ScriptArguments(dataset_name=None, dataset_mixture=None)
         self.assertIn("Either `dataset_name` or `dataset_mixture` must be provided", str(context.exception))
 
+    def test_dataset_name_and_mixture_are_mutually_exclusive(self):
+        mixture = {"datasets": [{"id": self.dataset_name}]}
+        with self.assertRaisesRegex(ValueError, "mutually exclusive"):
+            ScriptArguments(dataset_name=self.dataset_name, dataset_mixture=mixture)
+
+    def test_empty_mixture_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "at least one"):
+            ScriptArguments(dataset_mixture={"datasets": []})
+
+    def test_dataset_id_is_required(self):
+        with self.assertRaisesRegex(ValueError, "non-empty 'id'"):
+            ScriptArguments(dataset_mixture={"datasets": [{"id": "  "}]})
+
+    def test_dataset_configuration_must_be_a_mapping(self):
+        with self.assertRaisesRegex(ValueError, "must be a dictionary"):
+            ScriptArguments(dataset_mixture={"datasets": [self.dataset_name]})
+
+    def test_dataset_weight_is_bounded(self):
+        for weight in (-0.1, 0, 1.1, "half"):
+            with self.subTest(weight=weight), self.assertRaisesRegex(ValueError, "weight"):
+                ScriptArguments(dataset_mixture={"datasets": [{"id": self.dataset_name, "weight": weight}]})
+
+    def test_test_split_size_is_bounded(self):
+        for test_size in (-0.1, 0, 1, 1.1, "small"):
+            with self.subTest(test_size=test_size), self.assertRaisesRegex(ValueError, "test_split_size"):
+                ScriptArguments(
+                    dataset_mixture={"datasets": [{"id": self.dataset_name}], "test_split_size": test_size}
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

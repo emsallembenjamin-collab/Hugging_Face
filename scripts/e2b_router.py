@@ -15,17 +15,14 @@
 
 import argparse
 import asyncio
-from fastapi import FastAPI
-from pydantic import BaseModel, ConfigDict
-from typing import  Optional
-from fastapi import FastAPI, Request
-import argparse
-import asyncio
-from fastapi import FastAPI
-import uvicorn
-from e2b_code_interpreter.models import Execution
+from typing import Optional
+
 from dotenv import load_dotenv
 from e2b_code_interpreter import AsyncSandbox
+from e2b_code_interpreter.models import Execution
+from fastapi import FastAPI, Request
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+import uvicorn
 
 load_dotenv()
 
@@ -39,10 +36,20 @@ class BatchRequest(BaseModel):
         timeout (int): The maximum allowed execution time for each script in seconds.
         request_timeout (int): The maximum allowed time for the entire batch request in seconds.
     """
-    scripts: list[str]
-    languages: list[str]
-    timeout: int
-    request_timeout: int
+    scripts: list[str] = Field(min_length=1)
+    languages: list[str] = Field(min_length=1)
+    timeout: int = Field(gt=0)
+    request_timeout: int = Field(gt=0)
+
+    @model_validator(mode="after")
+    def validate_script_languages(self):
+        if len(self.scripts) != len(self.languages):
+            raise ValueError("scripts and languages must contain the same number of items")
+        if any(not script.strip() for script in self.scripts):
+            raise ValueError("scripts must not contain empty source code")
+        if any(not language.strip() for language in self.languages):
+            raise ValueError("languages must not contain empty values")
+        return self
 
 class ScriptResult(BaseModel):
     """
