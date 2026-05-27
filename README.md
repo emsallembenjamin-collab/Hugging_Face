@@ -15,6 +15,45 @@
    - [Generate data from a smol distilled R1 model](#generate-data-from-a-smol-distilled-r1-model)  
    - [Generate data from DeepSeek-R1](#generate-data-from-deepseek-r1)  
 8. [Contributing](#contributing)
+9. [Developer documentation](#developer-documentation)
+
+## Features
+
+- Supervised fine-tuning (SFT) and Group Relative Policy Optimization (GRPO).
+- Configurable mathematical, formatting, reasoning, and code-execution rewards.
+- Synthetic reasoning-data generation and benchmark evaluation workflows.
+- E2B, Morph, and self-hosted Piston execution backends.
+- Recipes for DDP, FSDP, DeepSpeed, dataset filtering, and Slurm clusters.
+- Unit and integration tests for rewards, datasets, code patching, and sandboxes.
+
+## Technology stack
+
+Open R1 is a Python 3.10+ project built around PyTorch, Transformers, TRL,
+Accelerate, Datasets, and vLLM. FastAPI powers the optional execution routers,
+while pytest, Ruff, isort, and Flake8 support development and verification.
+
+## Requirements
+
+- Python 3.10.9 or newer; Python 3.11 is used by the provided installation target.
+- Git and Git LFS for cloning and working with model artifacts.
+- `uv` for the documented environment and dependency workflow.
+- Linux with CUDA 12.4 for GPU training and vLLM workflows.
+- Sufficient accelerator memory for the selected model and recipe.
+- Optional E2B, Morph, W&B, and Hugging Face credentials for hosted services.
+
+## Quick start
+
+```shell
+git clone https://github.com/huggingface/open-r1.git
+cd open-r1
+make install
+make quality
+make test
+```
+
+The default recipes target large multi-GPU systems. Start with a small model,
+reduce batch sizes, and disable optional hosted integrations when evaluating the
+project on a workstation.
 
 ## Overview
 
