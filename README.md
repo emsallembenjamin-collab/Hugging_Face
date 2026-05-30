@@ -826,6 +826,10 @@ options:
 
 Contributions are welcome. Please refer to https://github.com/huggingface/open-r1/issues/23.
 
+## Developer documentation
+
+- [Configuration and environment variables](docs/configuration.md)
+
 ## Acknowledgements
 
 This project is built with the collective efforts of many groups and individuals in the open AI community. We are especially grateful to the vLLM and SGLang teams for creating high-performance tooling to scale the rollouts of GRPO. We also thank the teams at [OpenThoughts](https://www.open-thoughts.ai), [Prime Intellect](https://www.primeintellect.ai), and [General Reasoning](https://gr.inc) for creating and sharing high-quality datasets for reasoning.
