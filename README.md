@@ -829,6 +829,7 @@ Contributions are welcome. Please refer to https://github.com/huggingface/open-r
 ## Developer documentation
 
 - [Configuration and environment variables](docs/configuration.md)
+- [Architecture and project structure](docs/architecture.md)
 
 ## Acknowledgements
 
