@@ -824,12 +824,15 @@ options:
 
 ## Contributing
 
-Contributions are welcome. Please refer to https://github.com/huggingface/open-r1/issues/23.
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
+quality checks, test tiers, security expectations, and troubleshooting. Proposed
+work can be coordinated through https://github.com/huggingface/open-r1/issues/23.
 
 ## Developer documentation
 
 - [Configuration and environment variables](docs/configuration.md)
 - [Architecture and project structure](docs/architecture.md)
+- [Contribution, testing, and troubleshooting guide](CONTRIBUTING.md)
 
 ## Acknowledgements
 
