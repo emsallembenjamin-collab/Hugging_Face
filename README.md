@@ -15,6 +15,46 @@
    - [Generate data from a smol distilled R1 model](#generate-data-from-a-smol-distilled-r1-model)  
    - [Generate data from DeepSeek-R1](#generate-data-from-deepseek-r1)  
 8. [Contributing](#contributing)
+9. [Developer documentation](#developer-documentation)
+10. [Git Learning Exercise](#git-learning-exercise)
+
+## Features
+
+- Supervised fine-tuning (SFT) and Group Relative Policy Optimization (GRPO).
+- Configurable mathematical, formatting, reasoning, and code-execution rewards.
+- Synthetic reasoning-data generation and benchmark evaluation workflows.
+- E2B, Morph, and self-hosted Piston execution backends.
+- Recipes for DDP, FSDP, DeepSpeed, dataset filtering, and Slurm clusters.
+- Unit and integration tests for rewards, datasets, code patching, and sandboxes.
+
+## Technology stack
+
+Open R1 is a Python 3.10+ project built around PyTorch, Transformers, TRL,
+Accelerate, Datasets, and vLLM. FastAPI powers the optional execution routers,
+while pytest, Ruff, isort, and Flake8 support development and verification.
+
+## Requirements
+
+- Python 3.10.9 or newer; Python 3.11 is used by the provided installation target.
+- Git and Git LFS for cloning and working with model artifacts.
+- `uv` for the documented environment and dependency workflow.
+- Linux with CUDA 12.4 for GPU training and vLLM workflows.
+- Sufficient accelerator memory for the selected model and recipe.
+- Optional E2B, Morph, W&B, and Hugging Face credentials for hosted services.
+
+## Quick start
+
+```shell
+git clone https://github.com/huggingface/open-r1.git
+cd open-r1
+make install
+make quality
+make test
+```
+
+The default recipes target large multi-GPU systems. Start with a small model,
+reduce batch sizes, and disable optional hosted integrations when evaluating the
+project on a workstation.
 
 ## Overview
 
@@ -785,7 +825,58 @@ options:
 
 ## Contributing
 
-Contributions are welcome. Please refer to https://github.com/huggingface/open-r1/issues/23.
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
+quality checks, test tiers, security expectations, and troubleshooting. Proposed
+work can be coordinated through https://github.com/huggingface/open-r1/issues/23.
+
+## Developer documentation
+
+- [Configuration and environment variables](docs/configuration.md)
+- [Architecture and project structure](docs/architecture.md)
+- [Contribution, testing, and troubleshooting guide](CONTRIBUTING.md)
+
+## Git Learning Exercise
+
+This repository contains a branch-and-merge history designed for practicing
+Git inspection. Start with the compact history, then add branch decorations and
+the full graph to see where each feature was developed and merged:
+
+```shell
+git log --oneline
+git log --graph --oneline --all --decorate
+git log --all --date=short \
+  --pretty=format:"%h %ad %d %s"
+```
+
+Compare the local and remote branch lists before switching branches:
+
+```shell
+git branch
+git branch -a
+git switch docs/developer-guide
+git switch main
+```
+
+Inspect an individual change or compare two points in history. Replace the
+placeholders with hashes shown by `git log`:
+
+```shell
+git show <commit>
+git diff <commit1> <commit2>
+```
+
+Use blame to find the commit responsible for each line, and reflog to inspect
+local movements of `HEAD`, including switches, merges, and amended commits:
+
+```shell
+git blame README.md
+git reflog
+```
+
+Useful follow-up exercises include locating every merge commit with
+`git log --merges`, checking which branches contain a commit with
+`git branch --contains <commit>`, and reviewing a feature branch relative to
+its merge base with `git diff main...<branch>`.
 
 ## Acknowledgements
 
