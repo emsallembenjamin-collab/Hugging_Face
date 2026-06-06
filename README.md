@@ -16,6 +16,7 @@
    - [Generate data from DeepSeek-R1](#generate-data-from-deepseek-r1)  
 8. [Contributing](#contributing)
 9. [Developer documentation](#developer-documentation)
+10. [Git Learning Exercise](#git-learning-exercise)
 
 ## Features
 
@@ -833,6 +834,49 @@ work can be coordinated through https://github.com/huggingface/open-r1/issues/23
 - [Configuration and environment variables](docs/configuration.md)
 - [Architecture and project structure](docs/architecture.md)
 - [Contribution, testing, and troubleshooting guide](CONTRIBUTING.md)
+
+## Git Learning Exercise
+
+This repository contains a branch-and-merge history designed for practicing
+Git inspection. Start with the compact history, then add branch decorations and
+the full graph to see where each feature was developed and merged:
+
+```shell
+git log --oneline
+git log --graph --oneline --all --decorate
+git log --all --date=short \
+  --pretty=format:"%h %ad %d %s"
+```
+
+Compare the local and remote branch lists before switching branches:
+
+```shell
+git branch
+git branch -a
+git switch docs/developer-guide
+git switch main
+```
+
+Inspect an individual change or compare two points in history. Replace the
+placeholders with hashes shown by `git log`:
+
+```shell
+git show <commit>
+git diff <commit1> <commit2>
+```
+
+Use blame to find the commit responsible for each line, and reflog to inspect
+local movements of `HEAD`, including switches, merges, and amended commits:
+
+```shell
+git blame README.md
+git reflog
+```
+
+Useful follow-up exercises include locating every merge commit with
+`git log --merges`, checking which branches contain a commit with
+`git branch --contains <commit>`, and reviewing a feature branch relative to
+its merge base with `git diff main...<branch>`.
 
 ## Acknowledgements
 
